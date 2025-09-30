@@ -2,9 +2,25 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Literal
+from typing import Any, Dict, Iterable, Literal, Tuple
 
 import yaml
+
+
+@dataclass
+class EvaluationConfig:
+    """Configuration for evaluation and validation routines."""
+
+    cv_folds: int = 5
+    scoring: Tuple[str, ...] = ("accuracy", "precision", "recall", "f1")
+    n_jobs: int = -1
+
+    def __post_init__(self) -> None:
+        if isinstance(self.scoring, Iterable) and not isinstance(self.scoring, tuple):
+            self.scoring = tuple(self.scoring)
+
+    def scoring_list(self) -> list[str]:
+        return list(self.scoring)
 
 
 @dataclass
@@ -30,10 +46,16 @@ class TrainingConfig:
         }
     )
     output_dir: Path = field(default_factory=lambda: Path("artifacts"))
+    evaluation: EvaluationConfig = field(default_factory=EvaluationConfig)
 
     def __post_init__(self) -> None:
         if not isinstance(self.output_dir, Path):
             self.output_dir = Path(self.output_dir)
+        if not isinstance(self.evaluation, EvaluationConfig):
+            if isinstance(self.evaluation, dict):
+                self.evaluation = EvaluationConfig(**self.evaluation)
+            else:
+                self.evaluation = EvaluationConfig()
 
     def resolve_output_dir(self) -> Path:
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -43,6 +65,8 @@ class TrainingConfig:
     def from_yaml(cls, path: Path | str) -> "TrainingConfig":
         with Path(path).open("r", encoding="utf-8") as fh:
             data = yaml.safe_load(fh) or {}
+        if "evaluation" in data and isinstance(data["evaluation"], dict):
+            data["evaluation"] = EvaluationConfig(**data["evaluation"])
         return cls(**data)
 
 

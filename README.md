@@ -6,7 +6,8 @@ A lightweight yet extensible machine-learning project that demonstrates good eng
 
 - Modular Python package with clear separation of configuration, data loading, modelling, metrics, and persistence concerns
 - Command-line interface that supports YAML-based configuration and runtime overrides
-- Automatic export of the trained model, evaluation metrics, and a plain-text classification report
+- Automated cross-validation with summary statistics alongside hold-out evaluation
+- Automatic export of the trained model, evaluation metrics, predictions, and a plain-text classification report
 - Ready-to-run defaults using open datasets from scikit-learn
 - Pytest smoke test to verify the training pipeline executes without errors
 
@@ -45,7 +46,7 @@ A lightweight yet extensible machine-learning project that demonstrates good eng
 
 ## Configuration
 
-Configuration is managed via the `TrainingConfig` dataclass in `src/ml_project/config.py`. You can supply overrides through YAML files (see `configs/default.yaml` for an example) or command-line arguments. The supported options cover dataset choice, train/test split, random seeds, and model-specific hyperparameters for logistic regression and random forest classifiers.
+Configuration is managed via the `TrainingConfig` dataclass in `src/ml_project/config.py`. You can supply overrides through YAML files (see `configs/default.yaml` for an example) or command-line arguments. The supported options cover dataset choice, train/test split, random seeds, model-specific hyperparameters for logistic regression and random forest classifiers, and evaluation settings such as cross-validation folds and scoring metrics.
 
 ## Project Layout
 
@@ -65,6 +66,11 @@ Configuration is managed via the `TrainingConfig` dataclass in `src/ml_project/c
 │       ├── metrics.py
 │       ├── model.py
 │       └── pipeline.py
+├── scripts/
+│   └── generate_visuals.py
+├── images/
+│   ├── confusion_matrix.png
+│   └── metric_scores.png
 ├── tests/
 │   └── test_pipeline.py
 └── artifacts/
@@ -72,7 +78,13 @@ Configuration is managed via the `TrainingConfig` dataclass in `src/ml_project/c
 
 ## Results
 
-The default setup focuses on early breast-cancer detection using the Wisconsin Diagnostic Breast Cancer dataset. Running the pipeline with `configs/default.yaml` reproduces the following performance:
+The default setup focuses on early breast-cancer detection using the Wisconsin Diagnostic Breast Cancer dataset. Running the pipeline with `configs/default.yaml` yields:
+
+- Hold-out accuracy ≈ 0.98, precision/recall/F1 ≈ 0.99
+- 5-fold cross-validation accuracy ≈ 0.97 with macro F1 ≈ 0.98
+- Persisted predictions (`*_predictions.csv`) for downstream error analysis
+
+The distribution of predictions is visualised below.
 
 ![Confusion Matrix](images/confusion_matrix.png)
 

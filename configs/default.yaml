@@ -13,3 +13,11 @@ random_forest:
   max_depth: null
   min_samples_split: 5
 output_dir: artifacts
+evaluation:
+  cv_folds: 5
+  scoring:
+    - accuracy
+    - precision
+    - recall
+    - f1
+  n_jobs: -1

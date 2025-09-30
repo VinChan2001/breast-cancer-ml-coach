@@ -9,6 +9,10 @@ def test_run_pipeline(tmp_path: Path) -> None:
     result = run_pipeline(config)
 
     assert set(result["metrics"]).issuperset({"accuracy", "precision", "recall", "f1"})
+    assert "test_accuracy_mean" in result["cross_validation"]
     assert result["model_path"].exists()
     assert result["metrics_path"].exists()
     assert result["report_path"].exists()
+    assert result["cv_metrics_path"].exists()
+    assert result["predictions_path"].exists()
+    assert result["feature_importances_path"] is None

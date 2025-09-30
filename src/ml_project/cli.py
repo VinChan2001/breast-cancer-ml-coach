@@ -49,6 +49,14 @@ def _merge_overrides(config: TrainingConfig, dataset: Optional[str], model_type:
     return config
 
 
+def _format_cv_summary(cv_metrics: dict[str, float]) -> dict[str, float]:
+    return {
+        key: value
+        for key, value in cv_metrics.items()
+        if key.startswith("test_") and key.endswith("_mean")
+    }
+
+
 def main(argv: Optional[list[str]] = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
@@ -58,10 +66,19 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     results = run_pipeline(config)
 
-    print(json.dumps({"metrics": results["metrics"]}, indent=2))
+    summary_payload = {
+        "holdout_metrics": results["metrics"],
+        "cross_validation": _format_cv_summary(results["cross_validation"]),
+    }
+    print(json.dumps(summary_payload, indent=2))
+
     print(f"Model saved to: {results['model_path']}")
-    print(f"Metrics saved to: {results['metrics_path']}")
+    print(f"Holdout metrics saved to: {results['metrics_path']}")
+    print(f"Cross-validation metrics saved to: {results['cv_metrics_path']}")
     print(f"Report saved to: {results['report_path']}")
+    print(f"Predictions saved to: {results['predictions_path']}")
+    if results["feature_importances_path"] is not None:
+        print(f"Feature importances saved to: {results['feature_importances_path']}")
 
     return 0
 
